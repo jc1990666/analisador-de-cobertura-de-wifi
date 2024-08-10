@@ -38,6 +38,15 @@ def calcular_cobertura(metragem, num_paredes, tipo_parede, frequencia, num_andar
     
     return cobertura
 
+# Função para classificar a cobertura por metro quadrado
+def classificar_cobertura(cobertura_por_metro):
+    if cobertura_por_metro < 30:
+        return "Baixa", "⚠️"
+    elif 30 <= cobertura_por_metro <= 60:
+        return "Boa", "ℹ️"
+    else:
+        return "Ótima", "✅"
+
 st.title("Analisador de Cobertura Wi-Fi")
 
 st.header("1. Informações do Ambiente")
@@ -63,15 +72,22 @@ num_andares = st.number_input("Número de Andares:", min_value=1, value=1)
 st.header("5. Resultado da Análise")
 cobertura = calcular_cobertura(metragem, num_paredes, tipo_parede, frequencia, num_andares)
 
-st.write(f"Cobertura Estimada de Sinal Wi-Fi: {cobertura:.2f}%")
+# Calcular a cobertura por metro quadrado
+cobertura_por_metro = cobertura / metragem
 
-# Sugestões com base na cobertura
-if cobertura < 30:
+# Classificar a cobertura
+classificacao, icone = classificar_cobertura(cobertura_por_metro)
+
+st.write(f"Cobertura Estimada de Sinal Wi-Fi: {cobertura:.2f}%")
+st.write(f"Cobertura por Metro Quadrado: {cobertura_por_metro:.2f}% - {icone} {classificacao}")
+
+# Sugestões com base na classificação
+if classificacao == "Baixa":
     st.warning("⚠️ A cobertura está baixa. Considere adicionar um roteador ou repetidor.")
     st.write("Para melhorar a cobertura, posicione o roteador no centro do ambiente e adicione repetidores se necessário.")
-elif cobertura < 60:
+elif classificacao == "Boa":
     st.info("ℹ️ A cobertura está moderada. Pode ser suficiente, mas você pode otimizar o posicionamento do roteador e considerar repetidores.")
 else:
-    st.success("✅ A cobertura está boa! Seu roteador deve estar atendendo bem ao ambiente.")
+    st.success("✅ A cobertura está ótima! Seu roteador deve estar atendendo bem ao ambiente.")
 
 st.write("Nota: Esta é uma estimativa. Para resultados mais precisos, consulte um especialista em redes.")
