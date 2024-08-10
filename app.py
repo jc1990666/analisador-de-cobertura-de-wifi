@@ -1,4 +1,5 @@
-import streamlit as st
+import ipywidgets as widgets
+from IPython.display import display, clear_output
 import numpy as np
 
 # Função para calcular a perda de sinal com base no tipo de parede
@@ -12,10 +13,8 @@ def calcula_perda_parede(tipo_paredes):
     return sum([perdas_parede[parede] for parede in tipo_paredes])
 
 # Função para calcular a cobertura geral com base na potência do sinal e perdas
-def calcula_cobertura_geral(area_total, paredes_total, tipo_paredes, potencia_sinal_dBm, posicao_roteador, andares):
+def calcula_cobertura_geral(area_total, paredes_total, tipo_paredes, potencia_sinal_dBm, posicao_roteador, andares, quantidade_roteadores, frequencia_ghz):
     perdas_parede_total = calcula_perda_parede(tipo_paredes)
-
-    # Ajuste da potência com base nas paredes e na frequência
     potencia_ajustada_dBm = potencia_sinal_dBm - perdas_parede_total
 
     # Ajuste adicional com base na posição do roteador
@@ -24,6 +23,13 @@ def calcula_cobertura_geral(area_total, paredes_total, tipo_paredes, potencia_si
 
     # Ajuste para andares
     potencia_ajustada_dBm -= (andares - 1) * 2  # Perda adicional de sinal por andar
+
+    # Ajuste para quantidade de roteadores
+    potencia_ajustada_dBm += quantidade_roteadores * 5  # Cada roteador adicional melhora a cobertura
+
+    # Ajuste para frequência
+    if frequencia_ghz == 5.0:
+        potencia_ajustada_dBm -= 5  # Frequência de 5 GHz tem menor penetração
 
     # Cobertura geral estimada considerando a potência ajustada
     cobertura_base_dBm = 20  # Valor base para cálculo (potência ideal)
@@ -46,72 +52,155 @@ def sugerir_cabeamento(porcentagem_cobertura_geral):
     return recomendacao
 
 # Função principal para calcular a cobertura dos cômodos
-def calcular_cobertura_comodos(area_total, comprimento, largura, quantidade_comodos, paredes_total, tipo_paredes, potencia_sinal_dBm, posicao_roteador, andares, quantidade_roteadores, internet_contratada):
-    st.write("### Cobertura Total Estimada:")
-    porcentagem_cobertura_geral = calcula_cobertura_geral(area_total, paredes_total, tipo_paredes, potencia_sinal_dBm, posicao_roteador, andares)
-    st.write(f"Cobertura total estimada para a casa: {porcentagem_cobertura_geral:.2f}%")
+def calcular_cobertura_comodos(area_total, comprimento, largura, num_comodos, paredes_total, tipo_paredes, potencia_sinal_dBm, posicao_roteador, andares, quantidade_roteadores, quantidade_internet, frequencia_ghz):
+    output.clear_output()
+    with output:
+        porcentagem_cobertura_geral = calcula_cobertura_geral(area_total, paredes_total, tipo_paredes, potencia_sinal_dBm, posicao_roteador, andares, quantidade_roteadores, frequencia_ghz)
+        print(f"\nCobertura total estimada para a casa: {porcentagem_cobertura_geral:.2f}%\n")
 
-    area_comodo = area_total / quantidade_comodos if quantidade_comodos > 0 else area_total
+        # Cálculo da área por cômodo
+        area_comodo = area_total / num_comodos if num_comodos > 0 else area_total
 
-    # Ajuste da cobertura com base na distância e tipo de cômodo
-    tipos_comodos = {
-        'Cômodos': quantidade_comodos
-    }
+        for i in range(num_comodos):
+            distancia_impacto = 1 - (i / (num_comodos - 1)) if num_comodos > 1 else 1
+            porcentagem_cobertura_comodo = porcentagem_cobertura_geral * (0.8 + 0.2 * distancia_impacto)
+            print(f"Cobertura na Cômodo {i + 1} ({area_comodo:.2f} m²): {porcentagem_cobertura_comodo:.2f}%")
 
-    for i in range(quantidade_comodos):
-        distancia_impacto = 1 - (i / (quantidade_comodos - 1)) if quantidade_comodos > 1 else 1
-        porcentagem_cobertura_comodo = porcentagem_cobertura_geral * (0.8 + 0.2 * distancia_impacto)
-        st.write(f"Cobertura na Cômodo {i + 1} ({area_comodo:.2f} m²): {porcentagem_cobertura_comodo:.2f}%")
+        # Relatório final
+        print("\nRelatório de Cobertura Wi-Fi:")
+        print(f"Área total da casa: {area_total:.2f} m²")
+        print(f"Comprimento: {comprimento:.2f} m")
+        print(f"Largura: {largura:.2f} m")
+        print(f"Número total de cômodos: {num_comodos}")
+        print(f"Número total de paredes: {paredes_total}")
+        print(f"Potência do sinal: {potencia_sinal_dBm:.2f} dBm")
+        print(f"Posição do roteador: {posicao_roteador.capitalize()}")
+        print(f"Tipo de paredes: {', '.join(tipo_paredes)}")
+        print(f"Cobertura geral estimada: {porcentagem_cobertura_geral:.2f}%")
+        print(f"Número de andares: {andares}")
+        print(f"Quantidade de roteadores: {quantidade_roteadores}")
+        print(f"Quantidade de internet contratada: {quantidade_internet} Mbps")
+        print(f"Frequência do sinal: {frequencia_ghz} GHz")
 
-    # Relatório final
-    st.write("### Relatório de Cobertura Wi-Fi:")
-    st.write(f"Área total da casa: {area_total:.2f} m²")
-    st.write(f"Comprimento: {comprimento:.2f} m")
-    st.write(f"Largura: {largura:.2f} m")
-    st.write(f"Número total de cômodos: {quantidade_comodos}")
-    st.write(f"Número total de paredes: {paredes_total}")
-    st.write(f"Potência do sinal: {potencia_sinal_dBm:.2f} dBm")
-    st.write(f"Posição do roteador: {posicao_roteador.capitalize()}")
-    st.write(f"Tipo de paredes: {', '.join(tipo_paredes)}")
-    st.write(f"Cobertura geral estimada: {porcentagem_cobertura_geral:.2f}%")
-    st.write(f"Número de andares: {andares}")
-    st.write(f"Quantidade de roteadores: {quantidade_roteadores}")
-    st.write(f"Quantidade de internet contratada: {internet_contratada} Mbps")
-
-    # Considerações e Avaliação
-    avaliacao = sugerir_cabeamento(porcentagem_cobertura_geral)
-    st.write("### Considerações Finais:")
-    st.write(avaliacao)
+        # Considerações e Avaliação
+        avaliacao = sugerir_cabeamento(porcentagem_cobertura_geral)
+        print(f"\nConsiderações Finais:")
+        print(avaliacao)
 
 # Widgets para a interface
-st.title('Análise de Cobertura Wi-Fi')
+titulo = widgets.HTML(value="<h1 style='text-align: center; color: #FF6600;'>Análise de Cobertura Wi-Fi</h1>")
 
 # Parâmetros gerais da casa
-frequencia_ghz = st.selectbox('Frequência (GHz):', [2.4, 5.0])
-area_total = st.number_input('Área total (m²):', min_value=0.0, value=170.0)
-comprimento = st.number_input('Comprimento (m):', min_value=0.0, value=10.0)
-largura = st.number_input('Largura (m):', min_value=0.0, value=17.0)
-quantidade_comodos = st.number_input('Número de cômodos:', min_value=1, value=11)
-andares = st.slider('Número de andares:', min_value=1, max_value=5, value=1)
-paredes_total = st.slider('Número total de paredes:', min_value=0, max_value=20, value=8)
-tipo_paredes = st.multiselect('Tipo de paredes:', ['concreto', 'azulejo', 'metal', 'nenhuma'], default=['concreto'])
-potencia_sinal_dBm = st.number_input('Potência do sinal (dBm):', min_value=0.0, value=20.0)
-posicao_roteador = st.selectbox('Posição do roteador:', ['frente', 'meio', 'fundos'])
-quantidade_roteadores = st.number_input('Quantidade de roteadores:', min_value=0, value=1)
-internet_contratada = st.number_input('Quantidade de internet contratada (Mbps):', min_value=0, value=50)
+frequencia_ghz = widgets.Dropdown(
+    options=[2.4, 5.0],
+    value=2.4,
+    description='Frequência (GHz):',
+    style={'description_width': 'initial'}
+)
+
+area_total = widgets.FloatText(
+    value=170,
+    description='Área total (m²):',
+    style={'description_width': 'initial'}
+)
+
+comprimento = widgets.FloatText(
+    value=10,
+    description='Comprimento (m):',
+    style={'description_width': 'initial'}
+)
+
+largura = widgets.FloatText(
+    value=14,
+    description='Largura (m):',
+    style={'description_width': 'initial'}
+)
+
+num_comodos = widgets.IntSlider(
+    value=9,
+    min=1,
+    max=20,
+    step=1,
+    description='Número de cômodos:',
+    style={'description_width': 'initial'}
+)
+
+andares = widgets.IntSlider(
+    value=1,
+    min=1,
+    max=5,
+    step=1,
+    description='Número de andares:',
+    style={'description_width': 'initial'}
+)
+
+num_paredes = widgets.IntSlider(
+    value=6,
+    min=0,
+    max=20,
+    step=1,
+    description='Número total de paredes:',
+    style={'description_width': 'initial'}
+)
+
+tipo_paredes = widgets.SelectMultiple(
+    options=['concreto', 'azulejo', 'metal', 'nenhuma'],
+    value=['concreto'],
+    description='Tipo de paredes:',
+    style={'description_width': 'initial'}
+)
+
+potencia_sinal_dBm = widgets.FloatText(
+    value=20,
+    description='Potência do sinal (dBm):',
+    style={'description_width': 'initial'}
+)
+
+posicao_roteador = widgets.Dropdown(
+    options=['frente', 'meio', 'fundos'],
+    value='meio',
+    description='Posição do roteador:',
+    style={'description_width': 'initial'}
+)
+
+quantidade_roteadores = widgets.IntSlider(
+    value=2,
+    min=1,
+    max=5,
+    step=1,
+    description='Quantidade de roteadores:',
+    style={'description_width': 'initial'}
+)
+
+quantidade_internet = widgets.IntText(
+    value=200,
+    description='Quantidade de internet contratada (Mbps):',
+    style={'description_width': 'initial'}
+)
 
 # Botão para calcular
-if st.button('Calcular Cobertura'):
-    calcular_cobertura_comodos(
-        area_total,
-        comprimento,
-        largura,
-        quantidade_comodos,
-        paredes_total,
-        tipo_paredes,
-        potencia_sinal_dBm,
-        posicao_roteador,
-        andares,
-        quantidade_roteadores,
-        internet_contratada
-    )
+calcular_button = widgets.Button(description="Calcular Cobertura")
+output = widgets.Output()
+
+def on_calcular_button_clicked(b):
+    with output:
+        clear_output()
+        calcular_cobertura_comodos(
+            area_total.value,
+            comprimento.value,
+            largura.value,
+            num_comodos.value,
+            num_paredes.value,
+            list(tipo_paredes.value),
+            potencia_sinal_dBm.value,
+            posicao_roteador.value,
+            andares.value,
+            quantidade_roteadores.value,
+            quantidade_internet.value,
+            frequencia_ghz.value
+        )
+
+calcular_button.on_click(on_calcular_button_clicked)
+
+# Exibir widgets
+display(titulo, frequencia_ghz, area_total, comprimento, largura, num_comodos, andares, num_paredes, tipo_paredes, potencia_sinal_dBm, posicao_roteador, quantidade_roteadores, quantidade_internet, calcular_button, output)
