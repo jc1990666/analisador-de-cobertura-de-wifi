@@ -1,6 +1,6 @@
 import streamlit as st
 
-def calcular_cobertura(metragem, localizacao, andares, num_quartos, num_banheiros, num_salas, num_cozinhas, area_externa, num_paredes, material_paredes, velocidade_mbps, frequencia, latencia_ms, upload_mbps):
+def calcular_cobertura(metragem, andares, area_externa, material_paredes, velocidade_mbps, frequencia, latencia_ms, upload_mbps):
     # Fatores de impacto
     fator_andar = 0.9 if andares > 1 else 1
     fator_paredes = 0.8 if material_paredes == 'Concreto' else 1
@@ -20,42 +20,37 @@ def calcular_cobertura(metragem, localizacao, andares, num_quartos, num_banheiro
 
     return min(cobertura, 100)  # Garantir que a cobertura não exceda 100%
 
-st.title("Analisador Avançado de Cobertura Wi-Fi")
+st.title("Analisador de Cobertura Wi-Fi")
 
-st.header("1. Informações da Casa")
-metragens = st.number_input("Metragem Quadrada da Casa (ex.: 375 para 25x15 metros):", min_value=1, value=375)
-localizacao = st.selectbox("Localização do Roteador:", ["Meio", "Frente", "Fundo"])
+st.header("Informações da Casa")
+metragens = st.number_input("Metragem da Casa (em metros quadrados):", min_value=1, value=375)
 andares = st.number_input("Número de Andares:", min_value=1, max_value=5, value=1)
 
-st.header("2. Detalhes dos Cômodos")
-num_quartos = st.number_input("Número de Quartos:", min_value=0, value=5)
-num_banheiros = st.number_input("Número de Banheiros:", min_value=0, value=1)
-num_salas = st.number_input("Número de Salas:", min_value=0, value=1)
-num_cozinhas = st.number_input("Número de Cozinhas:", min_value=0, value=1)
-area_externa = st.radio("A casa possui área externa?", ["Não", "Sim"]) == "Sim"
+st.header("Detalhes dos Cômodos")
+area_externa = st.radio("A casa tem área externa?", ["Não", "Sim"]) == "Sim"
 
-st.header("3. Características das Paredes")
-num_paredes = st.number_input("Número de Paredes Matrizes (Divisórias Principais):", min_value=0, max_value=20, value=0)
+st.header("Características das Paredes")
 material_paredes = st.selectbox("Material das Paredes:", ["Madeira", "Concreto", "Tijolo", "Drywall"])
 
-st.header("4. Detalhes da Conexão")
-velocidade_mbps = st.number_input("Velocidade Contratada (Mbps):", min_value=1, max_value=1000, value=100)
+st.header("Detalhes da Conexão")
+velocidade_mbps = st.number_input("Velocidade da Internet (Mbps):", min_value=1, max_value=1000, value=300)
 frequencia = st.selectbox("Frequência da Internet:", ["2.4 GHz", "5 GHz"])
 latencia_ms = st.number_input("Latência (ms):", min_value=0, max_value=1000, value=7)
 upload_mbps = st.number_input("Velocidade de Upload (Mbps):", min_value=0, max_value=1000, value=47)
 
-st.header("5. Resultados da Análise")
-cobertura = calcular_cobertura(metragens, localizacao, andares, num_quartos, num_banheiros, num_salas, num_cozinhas, area_externa, num_paredes, material_paredes, velocidade_mbps, frequencia, latencia_ms, upload_mbps)
+st.header("Resultado")
+cobertura = calcular_cobertura(metragens, andares, area_externa, material_paredes, velocidade_mbps, frequencia, latencia_ms, upload_mbps)
 
 st.write(f"Cobertura Estimada de Sinal Wi-Fi: {cobertura:.2f}%")
 
 if cobertura < 30:
-    st.warning("⚠️ A cobertura está abaixo do ideal. Recomendamos a instalação de um roteador adicional ou repetidor.")
-    st.write("Posicione o roteador no centro da casa para melhorar a distribuição do sinal.")
-    st.write("Considere adicionar repetidores, especialmente em áreas com muitas paredes ou em andares superiores.")
+    st.warning("⚠️ A cobertura está baixa. Considere adicionar um roteador ou repetidor.")
+    st.write("Tente posicionar o roteador no centro da casa para melhor cobertura.")
+    st.write("Adicionar repetidores pode ajudar, especialmente em áreas com muitas paredes.")
 elif cobertura < 60:
-    st.info("ℹ️ A cobertura está abaixo do ideal, mas pode ser adequada para a maioria dos usos. Considere otimizar o posicionamento do roteador e adicionar repetidores se necessário.")
+    st.info("ℹ️ A cobertura está abaixo do ideal, mas pode ser suficiente para a maioria das pessoas.")
+    st.write("Ajustar o posicionamento do roteador e considerar repetidores pode melhorar a cobertura.")
 else:
-    st.success("✅ A cobertura está adequada. O roteador atual deve ser suficiente para a maioria dos usos.")
+    st.success("✅ A cobertura está boa. O roteador deve funcionar bem na maioria dos casos.")
 
-st.write("Disclaimer: Esta é uma estimativa básica e pode não refletir com precisão todos os fatores ambientais. Para resultados precisos, considere realizar uma análise de campo.")
+st.write("Nota: Esta é uma estimativa. Para resultados mais precisos, considere uma análise profissional.")
