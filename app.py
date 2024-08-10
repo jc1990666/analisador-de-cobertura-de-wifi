@@ -48,6 +48,7 @@ resultados = []
 for tipo_parede in tipos_paredes:
     for frequencia in frequencias_roteador:
         for num_roteador in n_roteadores:
+            print(f"Calculando para: Parede={tipo_parede}, Frequência={frequencia}, Roteadores={num_roteador}")  # Mensagem de depuração
             probabilidade = calcular_probabilidade(tipo_parede, frequencia, num_roteador)
             resultados.append({
                 "Tipo de Parede": tipo_parede,
