@@ -24,8 +24,8 @@ st.header("2. Características das Paredes")
 material_paredes = st.selectbox("Material das Paredes:", ["Madeira", "Concreto", "Tijolo", "Drywall"])
 
 st.header("3. Detalhes da Conexão")
-velocidade_download_mbps = st.number_input("Velocidade de Download (Mbps):", min_value=1, max_value=1000, value=124.12)
-velocidade_upload_mbps = st.number_input("Velocidade de Upload (Mbps):", min_value=1, max_value=1000, value=52.18)
+velocidade_download_mbps = st.number_input("Velocidade de Download (Mbps):", min_value=1, max_value=1000, format="%f", value=124.12)
+velocidade_upload_mbps = st.number_input("Velocidade de Upload (Mbps):", min_value=1, max_value=1000, format="%f", value=52.18)
 frequencia = st.selectbox("Frequência da Internet:", ["2.4 GHz", "5 GHz"])
 
 st.header("4. Resultado da Análise")
