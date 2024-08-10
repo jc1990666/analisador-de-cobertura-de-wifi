@@ -1,14 +1,27 @@
 import streamlit as st
 
-def calcular_cobertura(metragem, area_externa, material_paredes, velocidade_download_mbps, velocidade_upload_mbps, frequencia):
+def calcular_cobertura(metragem, area_externa, material_paredes, velocidade_download_mbps, frequencia):
+    # Parâmetros de perda de sinal
+    perda_por_parede = {
+        'Madeira': 1,
+        'Concreto': 4,
+        'Tijolo': 3,
+        'Drywall': 2
+    }
+    
+    perda_frequencia = {
+        '2.4 GHz': 3,
+        '5 GHz': 5
+    }
+    
     # Fatores de impacto
-    fator_area_externa = 1.1 if area_externa else 1
-    fator_paredes = 0.8 if material_paredes == 'Concreto' else 1
-    fator_frequencia = 0.8 if frequencia == '2.4 GHz' else 1.2
-
+    perda_material = perda_por_parede.get(material_paredes, 0)
+    perda_frequencia = perda_frequencia.get(frequencia, 0)
+    perda_area_externa = 1.1 if area_externa else 1
+    
     # Cálculo básico da cobertura de sinal
-    cobertura_base = 100 * (velocidade_download_mbps / 1000) * fator_paredes * fator_area_externa * fator_frequencia
-
+    cobertura_base = (velocidade_download_mbps / 300) * (100 - perda_material - perda_frequencia) * perda_area_externa
+    
     # Ajuste baseado na metragem
     cobertura = min(cobertura_base * (metragens / 350), 100)  # Max 100%
 
@@ -17,33 +30,35 @@ def calcular_cobertura(metragem, area_externa, material_paredes, velocidade_down
 st.title("Analisador de Cobertura Wi-Fi")
 
 st.header("1. Informações da Casa")
-metragens = st.number_input("Metragem da Casa (m²):", min_value=0, value=375)
-area_externa = st.radio("A casa tem área externa?", ["Não", "Sim"])
+comprimento = st.number_input("Comprimento da Casa (m):", min_value=1, value=10)
+largura = st.number_input("Largura da Casa (m):", min_value=1, value=10)
+metragens = comprimento * largura
+st.write(f"Metragem da Casa: {metragens} m²")
 
 st.header("2. Características das Paredes")
+area_externa = st.radio("A casa tem área externa?", ["Não", "Sim"])
 material_paredes = st.selectbox("Material das Paredes:", ["Madeira", "Concreto", "Tijolo", "Drywall"])
 
 st.header("3. Detalhes da Conexão")
 velocidade_download_mbps = st.number_input("Velocidade de Download (Mbps):", min_value=1, max_value=1000, value=124)
-velocidade_upload_mbps = st.number_input("Velocidade de Upload (Mbps):", min_value=1, max_value=1000, value=52)
 frequencia = st.selectbox("Frequência da Internet:", ["2.4 GHz", "5 GHz"])
 
 st.header("4. Resultado da Análise")
-cobertura = calcular_cobertura(metragens, area_externa == "Sim", material_paredes, velocidade_download_mbps, velocidade_upload_mbps, frequencia)
+cobertura = calcular_cobertura(metragens, area_externa == "Sim", material_paredes, velocidade_download_mbps, frequencia)
 
 st.write(f"Cobertura Estimada de Sinal Wi-Fi: {cobertura:.2f}%")
 
 if cobertura < 30:
     st.warning("⚠️ A cobertura está baixa. Considere adicionar um roteador ou repetidor.")
-    st.write("Para uma internet mais estável, tente posicionar o roteador no centro da casa. Repetidores podem ser seus aliados, especialmente se a sua casa tem muitas paredes.")
+    st.write("Para melhorar a cobertura, posicione o roteador no centro da casa e adicione repetidores se necessário.")
 elif cobertura < 60:
-    st.info("ℹ️ A cobertura está moderada. Pode ser suficiente, mas você pode querer otimizar o posicionamento do roteador e adicionar repetidores se necessário.")
+    st.info("ℹ️ A cobertura está moderada. Pode ser suficiente, mas você pode otimizar o posicionamento do roteador e considerar repetidores.")
 else:
-    st.success("✅ A cobertura está ótima! Seu roteador atual deve estar dando conta do recado.")
+    st.success("✅ A cobertura está boa! Seu roteador deve estar atendendo bem à casa.")
 
 st.write("""
-    🎉 **Dica Divertida:** Se a sua cobertura está parecendo um pouco fraca, imagine que o sinal do Wi-Fi é como um superpoder! Você quer garantir que esse superpoder alcance todos os cantinhos da sua casa. Posicionar o roteador no centro é como colocar um super-herói no meio da ação, e adicionar repetidores é como ter assistentes superpoderosos para ajudar! 
-    Não se preocupe, todos nós já estivemos lá. Com essas dicas, você vai garantir que seu Wi-Fi esteja em forma de campeão! 🚀📶
+    🎉 **Dica Divertida:** Se a cobertura está parecendo fraca, imagine que o sinal do Wi-Fi é como uma bolha mágica que precisa de espaço para se espalhar! Posicionar o roteador no centro da casa é como colocar a bolha no meio do espaço, e os repetidores são como pequenos ajudantes mágicos que garantem que a bolha alcance todos os cantinhos!
+    Com essas dicas, você vai garantir que seu Wi-Fi seja tão forte quanto um super-herói! 🚀📶
 """)
 
-st.write("Nota: Esta é uma estimativa. Para uma análise ainda mais precisa, considere consultar um especialista em redes.")
+st.write("Nota: Esta é uma estimativa. Para resultados mais precisos, consulte um especialista em redes.")
