@@ -1,4 +1,4 @@
-def calcular_cobertura(potencia_sinal, num_roteadores, paredes, tipo_paredes, freq, comprimento, largura, num_comodos, pos_roteador):
+def calcular_cobertura(potencia_sinal, num_roteadores, paredes, tipo_paredes, freq, comprimento, largura, num_comodos, pos_roteador, velocidade_internet):
     # Definindo valores padrão
     sinal_base = 50  # Base de sinal padrão para cálculos
     
@@ -39,7 +39,7 @@ def calcular_cobertura(potencia_sinal, num_roteadores, paredes, tipo_paredes, fr
     elif 300 <= velocidade_internet <= 500:
         cobertura_total *= 1.2
     
-    return cobertura_total
+    return max(0, cobertura_total)  # Garantir que a cobertura não seja negativa
 
 # Exemplo de dados
 potencia_sinal = -60  # dBm
@@ -53,13 +53,14 @@ num_comodos = 9
 pos_roteador = 'meio'
 velocidade_internet = 300  # Mbps
 
-cobertura_total = calcular_cobertura(potencia_sinal, num_roteadores, paredes, tipo_paredes, freq, comprimento, largura, num_comodos, pos_roteador)
+cobertura_total = calcular_cobertura(potencia_sinal, num_roteadores, paredes, tipo_paredes, freq, comprimento, largura, num_comodos, pos_roteador, velocidade_internet)
 print(f'Cobertura Geral Estimada: {cobertura_total:.2f}%')
 
 # Cobertura por cômodo
 def cobertura_por_comodo(cobertura_total, num_comodos):
-    cobertura_por_comodo = cobertura_total / num_comodos
-    return cobertura_por_comodo
+    if num_comodos > 0:
+        return cobertura_total / num_comodos
+    return 0
 
 for i in range(1, num_comodos + 1):
     cobertura = cobertura_por_comodo(cobertura_total, num_comodos)
