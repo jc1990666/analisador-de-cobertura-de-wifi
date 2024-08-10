@@ -1,5 +1,4 @@
-import ipywidgets as widgets
-from IPython.display import display, clear_output
+import streamlit as st
 import numpy as np
 
 # Função para calcular a perda de sinal com base no tipo de parede
@@ -48,186 +47,68 @@ def sugerir_cabeamento(porcentagem_cobertura_geral):
 
 # Função principal para calcular a cobertura dos cômodos
 def calcular_cobertura_comodos(area_total, quartos, banheiros, salas, cozinhas, areas_externas, paredes_total, tipo_paredes, potencia_sinal_dBm, posicao_roteador, andares):
-    output.clear_output()
-    with output:
-        porcentagem_cobertura_geral = calcula_cobertura_geral(area_total, paredes_total, tipo_paredes, potencia_sinal_dBm, posicao_roteador, andares)
-        print(f"\nCobertura total estimada para a casa: {porcentagem_cobertura_geral:.2f}%\n")
+    porcentagem_cobertura_geral = calcula_cobertura_geral(area_total, paredes_total, tipo_paredes, potencia_sinal_dBm, posicao_roteador, andares)
+    st.write(f"\nCobertura total estimada para a casa: {porcentagem_cobertura_geral:.2f}%\n")
 
-        # Cálculo da área média por tipo de cômodo
-        total_comodos = quartos + banheiros + salas + cozinhas + areas_externas
-        area_comodo = area_total / total_comodos if total_comodos > 0 else area_total
+    # Cálculo da área média por tipo de cômodo
+    total_comodos = quartos + banheiros + salas + cozinhas + areas_externas
+    area_comodo = area_total / total_comodos if total_comodos > 0 else area_total
 
-        # Ajuste da cobertura com base na distância e tipo de cômodo
-        tipos_comodos = {
-            'Quartos': quartos,
-            'Banheiros': banheiros,
-            'Salas': salas,
-            'Cozinhas': cozinhas,
-            'Áreas Externas': areas_externas
-        }
+    # Ajuste da cobertura com base na distância e tipo de cômodo
+    tipos_comodos = {
+        'Quartos': quartos,
+        'Banheiros': banheiros,
+        'Salas': salas,
+        'Cozinhas': cozinhas,
+        'Áreas Externas': areas_externas
+    }
 
-        for tipo, quantidade in tipos_comodos.items():
-            for i in range(quantidade):
-                distancia_impacto = 1 - (i / (quantidade - 1)) if quantidade > 1 else 1
-                # Aplicar ajuste na cobertura por tipo de cômodo
-                if tipo == 'Quartos':
-                    porcentagem_cobertura_comodo = porcentagem_cobertura_geral * (0.8 + 0.2 * distancia_impacto)
-                elif tipo == 'Banheiros':
-                    porcentagem_cobertura_comodo = porcentagem_cobertura_geral * (0.6 + 0.4 * distancia_impacto)
-                elif tipo == 'Salas':
-                    porcentagem_cobertura_comodo = porcentagem_cobertura_geral * (0.7 + 0.3 * distancia_impacto)
-                elif tipo == 'Cozinhas':
-                    porcentagem_cobertura_comodo = porcentagem_cobertura_geral * (0.5 + 0.5 * distancia_impacto)
-                elif tipo == 'Áreas Externas':
-                    porcentagem_cobertura_comodo = porcentagem_cobertura_geral * (0.4 + 0.6 * distancia_impacto)
-                print(f"Cobertura na {tipo} {i + 1} ({area_comodo:.2f} m²): {porcentagem_cobertura_comodo:.2f}%")
+    for tipo, quantidade in tipos_comodos.items():
+        for i in range(quantidade):
+            distancia_impacto = 1 - (i / (quantidade - 1)) if quantidade > 1 else 1
+            # Aplicar ajuste na cobertura por tipo de cômodo
+            if tipo == 'Quartos':
+                porcentagem_cobertura_comodo = porcentagem_cobertura_geral * (0.8 + 0.2 * distancia_impacto)
+            elif tipo == 'Banheiros':
+                porcentagem_cobertura_comodo = porcentagem_cobertura_geral * (0.6 + 0.4 * distancia_impacto)
+            elif tipo == 'Salas':
+                porcentagem_cobertura_comodo = porcentagem_cobertura_geral * (0.7 + 0.3 * distancia_impacto)
+            elif tipo == 'Cozinhas':
+                porcentagem_cobertura_comodo = porcentagem_cobertura_geral * (0.5 + 0.5 * distancia_impacto)
+            elif tipo == 'Áreas Externas':
+                porcentagem_cobertura_comodo = porcentagem_cobertura_geral * (0.4 + 0.6 * distancia_impacto)
+            st.write(f"Cobertura na {tipo} {i + 1} ({area_comodo:.2f} m²): {porcentagem_cobertura_comodo:.2f}%")
 
-        # Relatório final
-        print("\nRelatório de Cobertura Wi-Fi:")
-        print(f"Área total da casa: {area_total:.2f} m²")
-        print(f"Número total de cômodos: {total_comodos}")
-        print(f"Número de quartos: {quartos}")
-        print(f"Número de banheiros: {banheiros}")
-        print(f"Número de salas: {salas}")
-        print(f"Número de cozinhas: {cozinhas}")
-        print(f"Número de áreas externas: {areas_externas}")
-        print(f"Potência do sinal: {potencia_sinal_dBm:.2f} dBm")
-        print(f"Posição do roteador: {posicao_roteador.capitalize()}")
-        print(f"Tipo de paredes: {', '.join(tipo_paredes)}")
-        print(f"Cobertura geral estimada: {porcentagem_cobertura_geral:.2f}%")
-        print(f"Número de andares: {andares}")
+    # Relatório final
+    st.write("\nRelatório de Cobertura Wi-Fi:")
+    st.write(f"Área total da casa: {area_total:.2f} m²")
+    st.write(f"Número total de cômodos: {total_comodos}")
+    st.write(f"Número de quartos: {quartos}")
+    st.write(f"Número de banheiros: {banheiros}")
+    st.write(f"Número de salas: {salas}")
+    st.write(f"Número de cozinhas: {cozinhas}")
+    st.write(f"Número de áreas externas: {areas_externas}")
+    st.write(f"Potência do sinal: {potencia_sinal_dBm:.2f} dBm")
+    st.write(f"Posição do roteador: {posicao_roteador.capitalize()}")
+    st.write(f"Tipo de paredes: {', '.join(tipo_paredes)}")
+    st.write(f"Cobertura geral estimada: {porcentagem_cobertura_geral:.2f}%")
+    st.write(f"Número de andares: {andares}")
 
-        # Considerações e Avaliação
-        avaliacao = sugerir_cabeamento(porcentagem_cobertura_geral)
-        print(f"\nConsiderações Finais:")
-        print(avaliacao)
+    # Considerações e Avaliação
+    avaliacao = sugerir_cabeamento(porcentagem_cobertura_geral)
+    st.write(f"\nConsiderações Finais:")
+    st.write(avaliacao)
 
-# Widgets para a interface
-titulo = widgets.HTML(value="<h1 style='text-align: center; color: #FF6600;'>Análise de Cobertura Wi-Fi</h1>")
+# Interface do Streamlit
+st.title("Análise de Cobertura Wi-Fi")
 
 # Parâmetros gerais da casa
-frequencia_ghz = widgets.Dropdown(
-    options=[2.4, 5.0],
-    value=2.4,
-    description='Frequência (GHz):',
-    style={'description_width': 'initial'}
-)
+frequencia_ghz = st.selectbox('Frequência (GHz):', [2.4, 5.0])
 
-area_total = widgets.FloatText(
-    value=400,
-    description='Área total (m²):',
-    style={'description_width': 'initial'}
-)
+area_total = st.number_input('Área total (m²):', value=400.0)
 
-andares = widgets.IntSlider(
-    value=1,
-    min=1,
-    max=5,
-    step=1,
-    description='Número de andares:',
-    style={'description_width': 'initial'}
-)
+andares = st.slider('Número de andares:', min_value=1, max_value=5, value=1)
 
-quartos = widgets.IntSlider(
-    value=4,
-    min=0,
-    max=20,
-    step=1,
-    description='Número de quartos:',
-    style={'description_width': 'initial'}
-)
+quartos = st.slider('Número de quartos:', min_value=0, max_value=20, value=4)
 
-banheiros = widgets.IntSlider(
-    value=2,
-    min=0,
-    max=20,
-    step=1,
-    description='Número de banheiros:',
-    style={'description_width': 'initial'}
-)
-
-salas = widgets.IntSlider(
-    value=2,
-    min=0,
-    max=20,
-    step=1,
-    description='Número de salas:',
-    style={'description_width': 'initial'}
-)
-
-cozinhas = widgets.IntSlider(
-    value=1,
-    min=0,
-    max=20,
-    step=1,
-    description='Número de cozinhas:',
-    style={'description_width': 'initial'}
-)
-
-areas_externas = widgets.IntSlider(
-    value=2,
-    min=0,
-    max=20,
-    step=1,
-    description='Número de áreas externas:',
-    style={'description_width': 'initial'}
-)
-
-num_paredes = widgets.IntSlider(
-    value=8,
-    min=0,
-    max=20,
-    step=1,
-    description='Número total de paredes:',
-    style={'description_width': 'initial'}
-)
-
-tipo_paredes = widgets.SelectMultiple(
-    options=['concreto', 'azulejo', 'metal', 'nenhuma'],
-    value=['concreto'],
-    description='Tipo de paredes:',
-    style={'description_width': 'initial'}
-)
-
-potencia_sinal_dBm = widgets.FloatText(
-    value=20,
-    description='Potência do sinal (dBm):',
-    style={'description_width': 'initial'}
-)
-
-posicao_roteador = widgets.Dropdown(
-    options=['frente', 'meio', 'fundos'],
-    value='meio',
-    description='Posição do roteador:',
-    style={'description_width': 'initial'}
-)
-
-# Botão para calcular
-botao = widgets.Button(
-    description='Calcular Cobertura',
-    button_style='success',
-    style={'description_width': 'initial'}
-)
-
-output = widgets.Output()
-
-# Função ao clicar no botão
-def on_button_click(b):
-    calcular_cobertura_comodos(
-        area_total.value,
-        quartos.value,
-        banheiros.value,
-        salas.value,
-        cozinhas.value,
-        areas_externas.value,
-        num_paredes.value,
-        tipo_paredes.value,
-        potencia_sinal_dBm.value,
-        posicao_roteador.value,
-        andares.value
-    )
-
-botao.on_click(on_button_click)
-
-# Exibir widgets
-display(titulo, frequencia_ghz, area_total, andares, quartos, banheiros, salas, cozinhas, areas_externas, num_paredes, tipo_paredes, potencia_sinal_dBm, posicao_roteador, botao, output)
+banheiros = st.slider('N
