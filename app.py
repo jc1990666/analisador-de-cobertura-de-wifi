@@ -1,9 +1,7 @@
 import streamlit as st
-import pickle
-import os
 
 # Função para calcular a cobertura Wi-Fi
-def calcular_cobertura(metragem, num_paredes, tipo_parede, frequencia, num_andares):
+def calcular_cobertura(metragem, num_paredes, tipo_parede, frequencia, num_andares, interferencia, obstaculos, altura):
     # Parâmetros de perda de sinal baseados em tipos de paredes
     perda_parede = {
         'Drywall': 2,  # Perda padrão por parede em dB
@@ -18,14 +16,37 @@ def calcular_cobertura(metragem, num_paredes, tipo_parede, frequencia, num_andar
         '5 GHz': 5  # Perda adicional em dB
     }
     
+    # Interferências eletromagnéticas (exemplo de coeficientes)
+    perda_interferencia = {
+        'Baixa': 2,  # Baixa interferência
+        'Moderada': 5,  # Interferência moderada
+        'Alta': 8  # Alta interferência
+    }
+    
+    # Obstáculos móveis (coeficientes ajustáveis)
+    perda_obstaculos = {
+        'Poucos': 2,  # Poucos obstáculos
+        'Moderados': 4,  # Quantidade moderada de obstáculos
+        'Muitos': 6  # Muitos obstáculos móveis
+    }
+
+    # Variação de altura (coeficiente de ajuste)
+    ajuste_altura = 1 + (0.1 * (altura - 1))  # Aumenta a perda com andares mais altos
+    
     # Calculando a perda de sinal com base nas paredes
     perda_parede_total = sum(perda_parede[tipo] for tipo in tipo_parede) * num_paredes
     
     # Calculando a perda de sinal com base na frequência
     perda_frequencia_valor = perda_frequencia.get(frequencia, 0)
     
+    # Calculando a perda de sinal por interferência eletromagnética
+    perda_interferencia_valor = perda_interferencia.get(interferencia, 0)
+    
+    # Calculando a perda de sinal por obstáculos móveis
+    perda_obstaculos_valor = perda_obstaculos.get(obstaculos, 0)
+    
     # Cálculo da perda total de sinal
-    perda_total = perda_parede_total + perda_frequencia_valor
+    perda_total = (perda_parede_total + perda_frequencia_valor + perda_interferencia_valor + perda_obstaculos_valor) * ajuste_altura
     
     # Cálculo básico da cobertura de sinal
     cobertura_base = max(0, 100 - perda_total)  # Máximo de 100%
@@ -69,8 +90,17 @@ frequencia = st.selectbox("Frequência da Internet:", ["2.4 GHz", "5 GHz"])
 st.header("4. Detalhes Adicionais")
 num_andares = st.number_input("Número de Andares:", min_value=1, value=1)
 
+# Nova seção para interferências eletromagnéticas
+interferencia = st.selectbox("Interferência Eletromagnética:", ["Baixa", "Moderada", "Alta"])
+
+# Nova seção para obstáculos móveis
+obstaculos = st.selectbox("Obstáculos Móveis:", ["Poucos", "Moderados", "Muitos"])
+
+# Nova seção para altura (em andares)
+altura = st.number_input("Altura do Ambiente (em Andares):", min_value=1, value=1)
+
 st.header("5. Resultado da Análise")
-cobertura = calcular_cobertura(metragem, num_paredes, tipo_parede, frequencia, num_andares)
+cobertura = calcular_cobertura(metragem, num_paredes, tipo_parede, frequencia, num_andares, interferencia, obstaculos, altura)
 
 # Calcular a cobertura por metro quadrado
 cobertura_por_metro = cobertura / metragem
