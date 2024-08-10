@@ -1,55 +1,98 @@
 import streamlit as st
 import numpy as np
+import pandas as pd
 
-# Função para calcular perda de sinal com base no tipo de parede
-def calcula_perda_parede(tipo_paredes):
-    perdas_parede = {'concreto': 10, 'azulejo': 6, 'metal': 13, 'nenhuma': 0}
-    return sum([perdas_parede[parede] for parede in tipo_paredes])
+# Configurações iniciais da aplicação
+st.set_page_config(
+    page_title="Analisador de Cobertura Wi-Fi",
+    layout="centered",
+    initial_sidebar_state="expanded",
+)
 
-# Função para cálculo de cobertura geral
-def calcula_cobertura_geral(area_total, paredes_total, tipo_paredes, potencia_sinal_dBm, posicao_roteador, andares):
-    perdas_parede_total = calcula_perda_parede(tipo_paredes)
-    potencia_ajustada_dBm = potencia_sinal_dBm - perdas_parede_total
+st.title("Analisador Avançado de Cobertura Wi-Fi")
+st.markdown("""
+Este aplicativo foi projetado para ajudar a estimar a cobertura de sinal Wi-Fi em uma casa, levando em consideração a planta baixa, materiais de construção, e outras variáveis que impactam a qualidade do sinal. 
+Com isso, é possível fornecer recomendações detalhadas sobre a necessidade de pontos adicionais de acesso ou repetidores.
+""")
 
-    posicao_fatores = {'frente': 1.2, 'meio': 1.0, 'fundos': 0.8}
-    fator_ajuste = posicao_fatores.get(posicao_roteador, 1.0)
+# Seção 1: Entrada dos Dados da Casa
+st.header("1. Informações da Casa")
+metragem_total = st.number_input("Metragem Quadrada da Casa:", min_value=10, max_value=2000, step=1, help="Informe a área total da casa em metros quadrados.")
+localizacao_roteador = st.selectbox("Localização do Roteador:", ["Meio", "Frente", "Fundos"], help="Escolha a localização onde o roteador será instalado.")
+num_andares = st.slider("Número de Andares:", min_value=1, max_value=5, help="Número total de andares na casa.")
 
-    potencia_ajustada_dBm -= (andares - 1) * 2
-    cobertura_base_dBm = 20
-    porcentagem_cobertura = (potencia_ajustada_dBm / cobertura_base_dBm) * 100 * fator_ajuste
-    return max(0, min(porcentagem_cobertura, 100))
+# Seção 2: Detalhes dos Cômodos
+st.header("2. Detalhes dos Cômodos")
+num_quartos = st.number_input("Número de Quartos:", min_value=1, max_value=20, step=1)
+num_banheiros = st.number_input("Número de Banheiros:", min_value=1, max_value=10, step=1)
+tem_area_externa = st.radio("A casa possui área externa?", ("Não", "Sim"))
 
-# Função para sugestão de cabeamento com base na cobertura obtida
-def sugerir_cabamento(porcentagem_cobertura_geral):
-    if porcentagem_cobertura_geral < 30:
-        recomendacao = "A cobertura Wi-Fi é muito baixa. Para melhorar, considere a instalação de roteadores adicionais cabeados."
-        quantidade_roteadores = np.ceil((70 - porcentagem_cobertura_geral) / 10)
-        recomendacao += f" Para atingir uma cobertura ideal, considere a instalação de aproximadamente {int(quantidade_roteadores)} roteadores adicionais."
-    elif porcentagem_cobertura_geral < 60:
-        recomendacao = "A cobertura Wi-Fi é moderada. Para melhorar, considere a instalação de alguns roteadores adicionais."
-    else:
-        recomendacao = "A cobertura Wi-Fi é adequada. No entanto, você pode adicionar mais roteadores se desejar melhorar ainda mais a cobertura."
+# Seção 3: Características das Paredes
+st.header("3. Características das Paredes")
+num_paredes = st.slider("Número de Paredes Matrizes (Divisórias Principais):", min_value=0, max_value=20)
+tipo_paredes = st.selectbox("Material das Paredes:", ["Concreto", "Tijolo", "Madeira", "Gesso"], help="Escolha o material predominante das paredes internas.")
 
-    return recomendacao
+# Seção 4: Detalhes da Internet
+st.header("4. Detalhes da Conexão")
+velocidade_internet = st.slider("Velocidade Contratada (Mbps):", min_value=1, max_value=1000, step=1)
 
-# Função principal do Streamlit
-def main():
-    st.title('Analisador de Cobertura de Wi-Fi')
+# Funções de Cálculo
+def calcular_perda_sinal(tipo_paredes, num_paredes):
+    # Perda de sinal em dB baseada no tipo e quantidade de paredes
+    perdas_por_material = {"Concreto": 12, "Tijolo": 8, "Madeira": 4, "Gesso": 2}
+    perda_sinal = perdas_por_material[tipo_paredes] * num_paredes
+    return perda_sinal
+
+def calcular_cobertura(metragem_total, localizacao_roteador, perda_sinal, num_quartos, num_andares, tem_area_externa):
+    # Cálculo da cobertura com base nos dados fornecidos
+    base_cobertura = 100 - (metragem_total / 10) - (perda_sinal / 2) - (num_quartos * 2) - (num_andares * 5)
     
-    # Entrada de dados
-    area_total = st.number_input('Área Total (m²)', min_value=0.0, step=0.1)
-    paredes_total = st.number_input('Número Total de Paredes', min_value=0)
-    tipo_paredes = st.multiselect('Tipo das Paredes', ['concreto', 'azulejo', 'metal', 'nenhuma'])
-    potencia_sinal_dBm = st.slider('Potência do Sinal (dBm)', -100, 0)
-    posicao_roteador = st.selectbox('Posição do Roteador', ['frente', 'meio', 'fundos'])
-    andares = st.number_input('Número de Andares', min_value=1)
+    # Ajustes baseados na localização do roteador
+    if localizacao_roteador == 'Meio':
+        base_cobertura += 10
+    elif localizacao_roteador == 'Fundos':
+        base_cobertura -= 10
 
-    if st.button('Calcular Cobertura'):
-        cobertura = calcula_cobertura_geral(area_total, paredes_total, tipo_paredes, potencia_sinal_dBm, posicao_roteador, andares)
-        st.write(f'A cobertura estimada é: {cobertura:.2f}%')
-        
-        recomendacao = sugerir_cabamento(cobertura)
-        st.write(recomendacao)
+    # Ajustes baseados na área externa
+    if tem_area_externa == "Sim":
+        base_cobertura -= 5
+    
+    return max(0, base_cobertura)
 
-if __name__ == "__main__":
-    main()
+# Cálculo da Perda e Cobertura
+perda_sinal = calcular_perda_sinal(tipo_paredes, num_paredes)
+cobertura_estimada = calcular_cobertura(metragem_total, localizacao_roteador, perda_sinal, num_quartos, num_andares, tem_area_externa)
+
+# Exibição dos Resultados
+st.header("5. Resultados da Análise")
+st.write(f"### Cobertura Estimada de Sinal Wi-Fi: **{cobertura_estimada:.2f}%**")
+
+# Recomendações
+if cobertura_estimada < 50:
+    st.warning("⚠️ A cobertura está abaixo do ideal. Recomendamos a instalação de um roteador adicional ou repetidor.")
+elif 50 <= cobertura_estimada < 75:
+    st.info("ℹ️ A cobertura é razoável, mas pode ser melhorada com a instalação de um repetidor.")
+else:
+    st.success("✅ A cobertura está excelente! O roteador atual deve ser suficiente.")
+
+# Exibindo recomendações detalhadas
+st.subheader("Recomendações Detalhadas")
+if cobertura_estimada < 50:
+    st.write("""
+    - **Posicionar o roteador no centro da casa**: Melhorar a distribuição do sinal.
+    - **Adicionar repetidores**: Especialmente em áreas com muitas paredes ou em andares superiores.
+    """)
+elif 50 <= cobertura_estimada < 75:
+    st.write("""
+    - **Adicionar um repetidor**: Pode melhorar significativamente a cobertura.
+    - **Considerar a instalação de um roteador mais potente**: Se a casa for grande ou tiver paredes espessas.
+    """)
+else:
+    st.write("""
+    - **Manter a configuração atual**: A cobertura está adequada para o uso diário.
+    """)
+
+# Footer
+st.markdown("""
+    **Disclaimer:** Esta é uma estimativa básica e pode não refletir com precisão todos os fatores ambientais. Para resultados precisos, considere realizar uma análise de campo.
+""")
