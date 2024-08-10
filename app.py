@@ -19,10 +19,10 @@ def calcular_cobertura(metragem, num_paredes, tipo_parede, frequencia, num_andar
     perda_total = perda_parede_total + perda_frequencia_valor
     
     # Fator de ajuste com base na quantidade de roteadores e velocidade contratada
-    ajuste_roteadores = num_roteadores * 1.5  # Assumindo que cada roteador adicional aumenta a cobertura em 50%
-    ajuste_velocidade = min(velocidade_contratada / 100, 5)  # Assume que velocidades acima de 100 Mbps têm menos impacto adicional
+    ajuste_roteadores = num_roteadores * 1.5
+    ajuste_velocidade = min(velocidade_contratada / 100, 2.5)
     
-    cobertura_base = max(0, (100 - perda_total) * ajuste_roteadores)
+    cobertura_base = max(0, 100 - perda_total) * ajuste_roteadores
     cobertura = min(cobertura_base * (metragem / 350), 100)
     cobertura = (cobertura / num_andares) * ajuste_velocidade
     
@@ -47,16 +47,16 @@ st.write(f"Metragem do Ambiente: {metragem} m²")
 
 st.header("2. Características das Paredes")
 st.write("""
-**Número de Paredes Mestras:** Paredes podem interferir no sinal Wi-Fi. Quanto mais paredes houver entre o roteador e os dispositivos, maior será a perda de sinal. Por exemplo, em uma casa grande ou escritório com muitas divisões, o sinal pode ter dificuldades para alcançar todos os pontos.
+**Número de Paredes Mestras:** Mais paredes entre o roteador e os dispositivos podem reduzir o sinal Wi-Fi. Por exemplo, uma casa com várias divisões pode ter uma cobertura de sinal mais fraca.
 """)
 num_paredes = st.number_input("Número de Paredes Mestras:", min_value=1, value=1)
 
 st.write("""
-**Tipos de Paredes:** Diferentes tipos de parede podem interferir no sinal Wi-Fi de maneiras diferentes. Veja os exemplos:
-- **Gesso acartonado (Drywall):** Um tipo de parede comum em construções modernas. Ela não bloqueia tanto o sinal quanto paredes de concreto ou tijolo, mas ainda pode reduzir a força do Wi-Fi.
-- **Concreto:** Paredes de concreto são densas e podem bloquear grande parte do sinal Wi-Fi. Se sua casa ou prédio tem muitas dessas paredes, você pode precisar de repetidores.
-- **Tijolo:** Embora os tijolos também sejam densos, eles bloqueiam menos o sinal em comparação ao concreto, mas ainda causam alguma perda de força.
-- **Vidro:** Paredes de vidro bloqueiam menos o sinal, mas ainda podem refletir e dispersar o Wi-Fi, especialmente em paredes espessas.
+**Tipos de Paredes:** Diferentes tipos de paredes afetam o sinal de forma distinta:
+- **Gesso acartonado (Drywall):** Menos bloqueio do sinal.
+- **Concreto:** Bloqueio significativo do sinal.
+- **Tijolo:** Bloqueio moderado do sinal.
+- **Vidro:** Menos bloqueio, mas pode refletir o sinal.
 """)
 tipo_parede = st.multiselect(
     "Tipos de Paredes (selecione uma ou mais):",
@@ -65,27 +65,27 @@ tipo_parede = st.multiselect(
 
 st.header("3. Frequência da Internet")
 st.write("""
-**Frequência da Internet:** A escolha da frequência do roteador pode afetar a cobertura:
-- **2.4 GHz:** Frequência que oferece maior alcance e melhor penetração em obstáculos como paredes. Ideal para áreas maiores ou com muitas divisões.
-- **5 GHz:** Frequência que oferece velocidades mais rápidas, mas com menor alcance. Melhor para ambientes mais abertos ou onde a velocidade é prioritária.
+**Frequência do Roteador:** Impacta no alcance e velocidade:
+- **2.4 GHz:** Melhor alcance e penetração em paredes.
+- **5 GHz:** Maior velocidade, menor alcance.
 """)
 frequencia = st.selectbox("Frequência da Internet:", ["2.4 GHz", "5 GHz"])
 
 st.header("4. Quantidade de Roteadores")
 st.write("""
-**Número de Roteadores:** Mais roteadores no ambiente podem melhorar significativamente a cobertura, especialmente em casas ou edifícios grandes. Um roteador adicional pode ajudar a cobrir áreas onde o sinal é fraco.
+**Número de Roteadores:** Adicionar roteadores pode melhorar a cobertura em ambientes grandes.
 """)
 num_roteadores = st.number_input("Número de Roteadores no Ambiente:", min_value=1, value=1)
 
 st.header("5. Velocidade da Internet Contratada")
 st.write("""
-**Velocidade da Internet:** A velocidade contratada (em Mbps) influencia a qualidade e a estabilidade da sua conexão. Se você tem uma internet mais rápida, poderá ter uma experiência melhor, especialmente em atividades que exigem alta velocidade, como streaming e jogos online.
+**Velocidade da Internet (Mbps):** Influencia a qualidade da conexão. Valores mais altos garantem uma conexão mais estável e rápida.
 """)
 velocidade_contratada = st.slider("Velocidade da Internet Contratada (Mbps):", min_value=10, max_value=500, value=100, step=10)
 
 st.header("6. Detalhes Adicionais")
 st.write("""
-**Número de Andares:** Se sua casa ou edifício tem mais de um andar, o sinal Wi-Fi pode enfraquecer ao subir ou descer entre os andares. Nesses casos, um roteador mais potente ou repetidores Wi-Fi podem ser necessários.
+**Número de Andares:** Mais andares podem reduzir o sinal. Ajustes adicionais podem ser necessários para melhor cobertura.
 """)
 num_andares = st.number_input("Número de Andares:", min_value=1, value=1)
 
@@ -101,9 +101,9 @@ st.write(f"Cobertura por Metro Quadrado: {cobertura_por_metro:.2f}% - {icone} {c
 
 if classificacao == "Baixa":
     st.warning("⚠️ A cobertura está baixa. Considere adicionar mais roteadores ou repetidores para melhorar a cobertura.")
-    st.write("Posicione os roteadores estrategicamente para maximizar o alcance, e considere utilizar repetidores Wi-Fi para áreas com sinal fraco.")
+    st.write("Posicione os roteadores em locais estratégicos e utilize repetidores Wi-Fi em áreas com sinal fraco para melhorar a cobertura.")
 elif classificacao == "Boa":
-    st.info("ℹ️ A cobertura está moderada. Pode ser suficiente, mas ajustes no posicionamento dos roteadores ou a adição de repetidores podem otimizar ainda mais a cobertura.")
+    st.info("ℹ️ A cobertura está moderada. Pode ser suficiente, mas ajustar o posicionamento dos roteadores ou adicionar repetidores pode otimizar a cobertura.")
 else:
     st.success("✅ A cobertura está ótima! A configuração atual deve atender bem às suas necessidades.")
 
