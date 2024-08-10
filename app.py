@@ -1,46 +1,66 @@
-import streamlit as st
-
-# Função para calcular a cobertura Wi-Fi
-def calcular_cobertura(potencia_sinal, num_roteadores, comprimento, largura, num_comodos):
-    # Exemplo simples de cálculo de cobertura (ajuste conforme necessário)
+def calcular_cobertura(potencia_sinal, num_roteadores, paredes, tipo_paredes, freq, comprimento, largura, num_comodos, pos_roteador):
+    # Definindo valores padrão
+    sinal_base = 50  # Base de sinal padrão para cálculos
+    
+    # Ajuste baseado na potência do sinal
+    if potencia_sinal < -70:
+        sinal_base -= 10
+    elif potencia_sinal < -50:
+        sinal_base -= 5
+    
+    # Ajuste baseado na quantidade de paredes
+    perda_por_parede = 5 if tipo_paredes == 'concreto' else 2
+    sinal_base -= paredes * perda_por_parede
+    
+    # Ajuste baseado na frequência
+    if freq == 5:
+        sinal_base += 10  # Frequência de 5 GHz pode ter melhor desempenho em ambientes abertos
+    
+    # Ajuste baseado na posição do roteador
+    if pos_roteador == 'meio':
+        sinal_base += 10
+    elif pos_roteador == 'fundo':
+        sinal_base -= 5
+    elif pos_roteador == 'frente':
+        sinal_base += 5
+    
+    # Ajuste baseado no número de roteadores
+    sinal_base += num_roteadores * 5
+    
+    # Ajuste baseado na área total
     area_total = comprimento * largura
-    cobertura_base = potencia_sinal / 100  # Simplificação para exemplo
-    cobertura_total = min(100, cobertura_base * num_roteadores)
-    cobertura_por_comodo = max(0, cobertura_total / num_comodos)
-    return cobertura_total, cobertura_por_comodo
+    cobertura_total = min(100, sinal_base - (area_total / 100))  # Simplificação
+    
+    # Ajuste baseado na velocidade da internet
+    if 100 <= velocidade_internet < 200:
+        cobertura_total *= 0.8
+    elif 200 <= velocidade_internet < 300:
+        cobertura_total *= 1.0
+    elif 300 <= velocidade_internet <= 500:
+        cobertura_total *= 1.2
+    
+    return cobertura_total
 
-# Título do aplicativo
-st.title("Análise de Cobertura Wi-Fi")
+# Exemplo de dados
+potencia_sinal = -60  # dBm
+num_roteadores = 2
+paredes = 6
+tipo_paredes = 'concreto'
+freq = 2.4  # GHz
+comprimento = 10  # metros
+largura = 14  # metros
+num_comodos = 9
+pos_roteador = 'meio'
+velocidade_internet = 300  # Mbps
 
-# Entrada de dados pelo usuário
-frequencia = st.selectbox("Frequência (GHz)", [2.4, 5])
-comprimento = st.number_input("Comprimento (m)", min_value=1.0, step=0.1)
-largura = st.number_input("Largura (m)", min_value=1.0, step=0.1)
-num_comodos = st.number_input("Número de cômodos", min_value=1, step=1)
-num_andares = st.number_input("Número de andares", min_value=1, step=1)
-num_paredes = st.number_input("Número total de paredes", min_value=0, step=1)
-tipo_paredes = st.selectbox("Tipo de paredes", ["concreto", "madeira", "drywall"])
-potencia_sinal = st.number_input("Potência do sinal (dBm)", min_value=-100, max_value=100, step=1)
-posicao_roteador = st.selectbox("Posição do roteador", ["meio", "canto"])
-num_roteadores = st.number_input("Quantidade de roteadores", min_value=1, step=1)
-internet_contratada = st.number_input("Quantidade de internet contratada (Mbps)", min_value=1, step=1)
+cobertura_total = calcular_cobertura(potencia_sinal, num_roteadores, paredes, tipo_paredes, freq, comprimento, largura, num_comodos, pos_roteador)
+print(f'Cobertura Geral Estimada: {cobertura_total:.2f}%')
 
-# Calculando a cobertura
-cobertura_total, cobertura_por_comodo = calcular_cobertura(potencia_sinal, num_roteadores, comprimento, largura, num_comodos)
-
-# Exibindo resultados
-st.subheader("Resultados da Análise")
-st.write(f"Área total da casa: {comprimento * largura:.2f} m²")
-st.write(f"Número total de cômodos: {num_comodos}")
-st.write(f"Número total de paredes: {num_paredes}")
-st.write(f"Potência do sinal: {potencia_sinal} dBm")
-st.write(f"Posição do roteador: {posicao_roteador}")
-st.write(f"Quantidade de roteadores: {num_roteadores}")
-st.write(f"Quantidade de internet contratada: {internet_contratada} Mbps")
-st.write(f"Cobertura geral estimada: {cobertura_total:.2f}%")
+# Cobertura por cômodo
+def cobertura_por_comodo(cobertura_total, num_comodos):
+    cobertura_por_comodo = cobertura_total / num_comodos
+    return cobertura_por_comodo
 
 for i in range(1, num_comodos + 1):
-    st.write(f"Cobertura na Cômodo {i}: {cobertura_por_comodo:.2f}%")
-
-st.write("Considerações Finais:")
-st.write("A cobertura Wi-Fi é moderada. Para alcançar uma melhor cobertura, considere a instalação de mais roteadores ou a melhoria do posicionamento dos mesmos.")
+    cobertura = cobertura_por_comodo(cobertura_total, num_comodos)
+    print(f'Cobertura na Cômodo {i}: {cobertura:.2f}%')
