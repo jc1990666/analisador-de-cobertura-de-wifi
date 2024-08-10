@@ -46,84 +46,72 @@ def sugerir_cabeamento(porcentagem_cobertura_geral):
     return recomendacao
 
 # Função principal para calcular a cobertura dos cômodos
-def calcular_cobertura_comodos(area_total, quartos, banheiros, salas, cozinhas, areas_externas, paredes_total, tipo_paredes, potencia_sinal_dBm, posicao_roteador, andares):
-    st.write("\nCobertura total estimada para a casa: {:.2f}%\n".format(calcula_cobertura_geral(area_total, paredes_total, tipo_paredes, potencia_sinal_dBm, posicao_roteador, andares)))
+def calcular_cobertura_comodos(area_total, comprimento, largura, quantidade_comodos, paredes_total, tipo_paredes, potencia_sinal_dBm, posicao_roteador, andares, quantidade_roteadores, internet_contratada):
+    st.write("### Cobertura Total Estimada:")
+    porcentagem_cobertura_geral = calcula_cobertura_geral(area_total, paredes_total, tipo_paredes, potencia_sinal_dBm, posicao_roteador, andares)
+    st.write(f"Cobertura total estimada para a casa: {porcentagem_cobertura_geral:.2f}%")
 
-    # Cálculo da área média por tipo de cômodo
-    total_comodos = quartos + banheiros + salas + cozinhas + areas_externas
-    area_comodo = area_total / total_comodos if total_comodos > 0 else area_total
+    area_comodo = area_total / quantidade_comodos if quantidade_comodos > 0 else area_total
 
     # Ajuste da cobertura com base na distância e tipo de cômodo
     tipos_comodos = {
-        'Quartos': quartos,
-        'Banheiros': banheiros,
-        'Salas': salas,
-        'Cozinhas': cozinhas,
-        'Áreas Externas': areas_externas
+        'Cômodos': quantidade_comodos
     }
 
-    for tipo, quantidade in tipos_comodos.items():
-        for i in range(quantidade):
-            distancia_impacto = 1 - (i / (quantidade - 1)) if quantidade > 1 else 1
-            # Aplicar ajuste na cobertura por tipo de cômodo
-            if tipo == 'Quartos':
-                porcentagem_cobertura_comodo = calcula_cobertura_geral(area_total, paredes_total, tipo_paredes, potencia_sinal_dBm, posicao_roteador, andares) * (0.8 + 0.2 * distancia_impacto)
-            elif tipo == 'Banheiros':
-                porcentagem_cobertura_comodo = calcula_cobertura_geral(area_total, paredes_total, tipo_paredes, potencia_sinal_dBm, posicao_roteador, andares) * (0.6 + 0.4 * distancia_impacto)
-            elif tipo == 'Salas':
-                porcentagem_cobertura_comodo = calcula_cobertura_geral(area_total, paredes_total, tipo_paredes, potencia_sinal_dBm, posicao_roteador, andares) * (0.7 + 0.3 * distancia_impacto)
-            elif tipo == 'Cozinhas':
-                porcentagem_cobertura_comodo = calcula_cobertura_geral(area_total, paredes_total, tipo_paredes, potencia_sinal_dBm, posicao_roteador, andares) * (0.5 + 0.5 * distancia_impacto)
-            elif tipo == 'Áreas Externas':
-                porcentagem_cobertura_comodo = calcula_cobertura_geral(area_total, paredes_total, tipo_paredes, potencia_sinal_dBm, posicao_roteador, andares) * (0.4 + 0.6 * distancia_impacto)
-            st.write(f"Cobertura na {tipo} {i + 1} ({area_comodo:.2f} m²): {porcentagem_cobertura_comodo:.2f}%")
+    for i in range(quantidade_comodos):
+        distancia_impacto = 1 - (i / (quantidade_comodos - 1)) if quantidade_comodos > 1 else 1
+        porcentagem_cobertura_comodo = porcentagem_cobertura_geral * (0.8 + 0.2 * distancia_impacto)
+        st.write(f"Cobertura na Cômodo {i + 1} ({area_comodo:.2f} m²): {porcentagem_cobertura_comodo:.2f}%")
 
     # Relatório final
-    st.write("\nRelatório de Cobertura Wi-Fi:")
+    st.write("### Relatório de Cobertura Wi-Fi:")
     st.write(f"Área total da casa: {area_total:.2f} m²")
-    st.write(f"Número total de cômodos: {total_comodos}")
-    st.write(f"Número de quartos: {quartos}")
-    st.write(f"Número de banheiros: {banheiros}")
-    st.write(f"Número de salas: {salas}")
-    st.write(f"Número de cozinhas: {cozinhas}")
-    st.write(f"Número de áreas externas: {areas_externas}")
+    st.write(f"Comprimento: {comprimento:.2f} m")
+    st.write(f"Largura: {largura:.2f} m")
+    st.write(f"Número total de cômodos: {quantidade_comodos}")
+    st.write(f"Número total de paredes: {paredes_total}")
     st.write(f"Potência do sinal: {potencia_sinal_dBm:.2f} dBm")
     st.write(f"Posição do roteador: {posicao_roteador.capitalize()}")
     st.write(f"Tipo de paredes: {', '.join(tipo_paredes)}")
-    st.write(f"Cobertura geral estimada: {calcula_cobertura_geral(area_total, paredes_total, tipo_paredes, potencia_sinal_dBm, posicao_roteador, andares):.2f}%")
+    st.write(f"Cobertura geral estimada: {porcentagem_cobertura_geral:.2f}%")
     st.write(f"Número de andares: {andares}")
+    st.write(f"Quantidade de roteadores: {quantidade_roteadores}")
+    st.write(f"Quantidade de internet contratada: {internet_contratada} Mbps")
 
     # Considerações e Avaliação
-    avaliacao = sugerir_cabeamento(calcula_cobertura_geral(area_total, paredes_total, tipo_paredes, potencia_sinal_dBm, posicao_roteador, andares))
-    st.write(f"\nConsiderações Finais:")
+    avaliacao = sugerir_cabeamento(porcentagem_cobertura_geral)
+    st.write("### Considerações Finais:")
     st.write(avaliacao)
 
 # Widgets para a interface
-st.title("Análise de Cobertura Wi-Fi")
+st.title('Análise de Cobertura Wi-Fi')
 
-frequencia_ghz = st.selectbox('Frequência (GHz):', [2.4, 5.0], index=0)
-
-area_total = st.number_input('Área total (m²):', value=400)
-
+# Parâmetros gerais da casa
+frequencia_ghz = st.selectbox('Frequência (GHz):', [2.4, 5.0])
+area_total = st.number_input('Área total (m²):', min_value=0.0, value=170.0)
+comprimento = st.number_input('Comprimento (m):', min_value=0.0, value=10.0)
+largura = st.number_input('Largura (m):', min_value=0.0, value=17.0)
+quantidade_comodos = st.number_input('Número de cômodos:', min_value=1, value=11)
 andares = st.slider('Número de andares:', min_value=1, max_value=5, value=1)
-
-quartos = st.slider('Número de quartos:', min_value=0, max_value=20, value=4)
-
-banheiros = st.slider('Número de banheiros:', min_value=0, max_value=20, value=2)
-
-salas = st.slider('Número de salas:', min_value=0, max_value=20, value=2)
-
-cozinhas = st.slider('Número de cozinhas:', min_value=0, max_value=20, value=1)
-
-areas_externas = st.slider('Número de áreas externas:', min_value=0, max_value=20, value=2)
-
-num_paredes = st.slider('Número total de paredes:', min_value=0, max_value=20, value=8)
-
+paredes_total = st.slider('Número total de paredes:', min_value=0, max_value=20, value=8)
 tipo_paredes = st.multiselect('Tipo de paredes:', ['concreto', 'azulejo', 'metal', 'nenhuma'], default=['concreto'])
-
-potencia_sinal_dBm = st.number_input('Potência do sinal (dBm):', value=20)
-
+potencia_sinal_dBm = st.number_input('Potência do sinal (dBm):', min_value=0.0, value=20.0)
 posicao_roteador = st.selectbox('Posição do roteador:', ['frente', 'meio', 'fundos'])
+quantidade_roteadores = st.number_input('Quantidade de roteadores:', min_value=0, value=1)
+internet_contratada = st.number_input('Quantidade de internet contratada (Mbps):', min_value=0, value=50)
 
-# Calcular e exibir a cobertura
-calcular_cobertura_comodos(area_total, quartos, banheiros, salas, cozinhas, areas_externas, num_paredes, tipo_paredes, potencia_sinal_dBm, posicao_roteador, andares)
+# Botão para calcular
+if st.button('Calcular Cobertura'):
+    calcular_cobertura_comodos(
+        area_total,
+        comprimento,
+        largura,
+        quantidade_comodos,
+        paredes_total,
+        tipo_paredes,
+        potencia_sinal_dBm,
+        posicao_roteador,
+        andares,
+        quantidade_roteadores,
+        internet_contratada
+    )
