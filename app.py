@@ -3,39 +3,50 @@ import streamlit as st
 # Função para calcular a cobertura Wi-Fi
 def calcular_cobertura(metragem, num_paredes, tipo_parede, frequencia, num_andares, num_roteadores, velocidade_contratada):
     perda_parede = {
-        'Drywall (Gesso acartonado)': 2,
-        'Concreto': 5,
-        'Tijolo': 4,
+        'Drywall (Gesso acartonado)': 5,
+        'Concreto': 15,
+        'Tijolo': 10,
         'Vidro': 3
     }
     
     perda_frequencia = {
-        '2.4 GHz': 3,
-        '5 GHz': 5
+        '2.4 GHz': 10,
+        '5 GHz': 20
     }
     
-    perda_parede_total = sum(perda_parede[tipo] for tipo in tipo_parede) * num_paredes
+    perda_parede_total = sum(perda_parede.get(tipo, 0) for tipo in tipo_parede) * num_paredes
     perda_frequencia_valor = perda_frequencia.get(frequencia, 0)
     perda_total = perda_parede_total + perda_frequencia_valor
     
-    # Fator de ajuste com base na quantidade de roteadores e velocidade contratada
-    ajuste_roteadores = num_roteadores * 1.5
-    ajuste_velocidade = min(velocidade_contratada / 100, 2.5)
+    # Ajusta a cobertura com base no número de roteadores e velocidade contratada
+    ajuste_roteadores = num_roteadores * 10
+    ajuste_velocidade = min(velocidade_contratada / 50, 10)
     
-    cobertura_base = max(0, 100 - perda_total) * ajuste_roteadores
-    cobertura = min(cobertura_base * (metragem / 350), 100)
-    cobertura = (cobertura / num_andares) * ajuste_velocidade
+    cobertura_base = max(0, 100 - perda_total) * (1 + ajuste_roteadores / 100)
+    cobertura = min(cobertura_base * (metragem / 300), 100)
+    cobertura = cobertura * (num_andares / 2) * (ajuste_velocidade / 5)
     
     return cobertura
 
-# Função para classificar a cobertura por metro quadrado
-def classificar_cobertura(cobertura_por_metro):
-    if cobertura_por_metro < 30:
+# Função para classificar a cobertura
+def classificar_cobertura(cobertura):
+    if cobertura < 30:
         return "Baixa", "⚠️"
-    elif 30 <= cobertura_por_metro <= 60:
+    elif 30 <= cobertura < 70:
         return "Boa", "ℹ️"
     else:
         return "Ótima", "✅"
+
+# Função para comparação
+def comparacao_cobertura(cobertura):
+    if cobertura < 30:
+        comparacao = "A cobertura é baixa. Isso geralmente significa que há áreas significativas com sinal fraco ou inexistente."
+    elif 30 <= cobertura < 70:
+        comparacao = "A cobertura é boa. A maioria dos dispositivos deve funcionar bem, mas pode haver áreas com sinal mais fraco."
+    else:
+        comparacao = "A cobertura é ótima. O sinal Wi-Fi deve ser forte e confiável em toda a área."
+
+    return comparacao
 
 st.title("Analisador de Cobertura Wi-Fi")
 
@@ -47,17 +58,14 @@ st.write(f"Metragem do Ambiente: {metragem} m²")
 
 st.header("2. Características das Paredes")
 st.write("""
-**Número de Paredes Mestras:** Mais paredes entre o roteador e os dispositivos podem reduzir o sinal Wi-Fi. Por exemplo, uma casa com várias divisões pode ter uma cobertura de sinal mais fraca.
-""")
-num_paredes = st.number_input("Número de Paredes Mestras:", min_value=1, value=1)
-
-st.write("""
+**Número de Paredes Mestras:** Mais paredes entre o roteador e os dispositivos podem reduzir o sinal Wi-Fi. 
 **Tipos de Paredes:** Diferentes tipos de paredes afetam o sinal de forma distinta:
-- **Gesso acartonado (Drywall):** Menos bloqueio do sinal.
+- **Drywall (Gesso acartonado):** Menos bloqueio do sinal.
 - **Concreto:** Bloqueio significativo do sinal.
 - **Tijolo:** Bloqueio moderado do sinal.
 - **Vidro:** Menos bloqueio, mas pode refletir o sinal.
 """)
+num_paredes = st.number_input("Número de Paredes Mestras:", min_value=1, value=1)
 tipo_parede = st.multiselect(
     "Tipos de Paredes (selecione uma ou mais):",
     ["Drywall (Gesso acartonado)", "Concreto", "Tijolo", "Vidro"]
@@ -73,7 +81,7 @@ frequencia = st.selectbox("Frequência da Internet:", ["2.4 GHz", "5 GHz"])
 
 st.header("4. Quantidade de Roteadores")
 st.write("""
-**Número de Roteadores:** Adicionar roteadores pode melhorar a cobertura em ambientes grandes.
+**Número de Roteadores:** Adicionar roteadores pode melhorar a cobertura em ambientes grandes. 
 """)
 num_roteadores = st.number_input("Número de Roteadores no Ambiente:", min_value=1, value=1)
 
@@ -92,18 +100,17 @@ num_andares = st.number_input("Número de Andares:", min_value=1, value=1)
 st.header("7. Resultado da Análise")
 cobertura = calcular_cobertura(metragem, num_paredes, tipo_parede, frequencia, num_andares, num_roteadores, velocidade_contratada)
 
-cobertura_por_metro = cobertura / metragem
-
-classificacao, icone = classificar_cobertura(cobertura_por_metro)
+classificacao, icone = classificar_cobertura(cobertura)
+comparacao = comparacao_cobertura(cobertura)
 
 st.write(f"Cobertura Estimada de Sinal Wi-Fi: {cobertura:.2f}%")
-st.write(f"Cobertura por Metro Quadrado: {cobertura_por_metro:.2f}% - {icone} {classificacao}")
+st.write(f"Classificação: {icone} {classificacao}")
+st.write(f"Comparação: {comparacao}")
 
 if classificacao == "Baixa":
-    st.warning("⚠️ A cobertura está baixa. Considere adicionar mais roteadores ou repetidores para melhorar a cobertura.")
-    st.write("Posicione os roteadores em locais estratégicos e utilize repetidores Wi-Fi em áreas com sinal fraco para melhorar a cobertura.")
+    st.warning("⚠️ A cobertura está baixa. Considere adicionar mais roteadores ou repetidores. Posicione os roteadores estrategicamente e considere usar repetidores em áreas com sinal fraco.")
 elif classificacao == "Boa":
-    st.info("ℹ️ A cobertura está moderada. Pode ser suficiente, mas ajustar o posicionamento dos roteadores ou adicionar repetidores pode otimizar a cobertura.")
+    st.info("ℹ️ A cobertura está moderada. A configuração atual pode ser suficiente, mas otimizar o posicionamento dos roteadores ou adicionar repetidores pode melhorar a cobertura.")
 else:
     st.success("✅ A cobertura está ótima! A configuração atual deve atender bem às suas necessidades.")
 
