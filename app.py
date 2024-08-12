@@ -1,10 +1,6 @@
 import streamlit as st
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 
-def calcular_cobertura(potencia_sinal, num_roteadores, paredes, tipo_paredes, freq, comprimento, largura, num_andares):
+def calcular_cobertura(potencia_sinal, num_roteadores, paredes, tipo_paredes, freq, comprimento, largura, num_andares, pos_roteador):
     # Definindo valores padrão
     sinal_base = 100  # Base de sinal padrão para cálculos
 
@@ -38,6 +34,7 @@ def calcular_cobertura(potencia_sinal, num_roteadores, paredes, tipo_paredes, fr
 
     return cobertura_total
 
+# Interface Streamlit
 def main():
     st.title("Análise de Cobertura Wi-Fi")
     
@@ -54,39 +51,20 @@ def main():
     pos_roteador = st.selectbox("Posição do roteador:", ['meio', 'frente', 'fundo'])
 
     # Cálculo da cobertura
-    cobertura_total = calcular_cobertura(-100, num_roteadores, paredes, tipo_paredes, freq, comprimento, largura, num_andares)
+    cobertura_total = calcular_cobertura(-100, num_roteadores, paredes, tipo_paredes, freq, comprimento, largura, num_andares, pos_roteador)
     st.write(f'Cobertura Geral Estimada: {cobertura_total:.2f}%')
 
     # Cobertura por cômodo
+    def cobertura_por_comodo(cobertura_total, num_comodos):
+        if num_comodos == 0:
+            return 0
+        return cobertura_total / num_comodos
+
     num_comodos = st.number_input("Número de cômodos:", 1, 20, 1)
-    cobertura_por_comodo = cobertura_total / num_comodos
+
     for i in range(1, num_comodos + 1):
-        st.write(f'Cobertura na Cômodo {i}: {cobertura_por_comodo:.2f}%')
-
-    # Visualização
-    # Criando um gráfico de dispersão da cobertura
-    x = np.linspace(0, comprimento, 10)
-    y = np.linspace(0, largura, 10)
-    X, Y = np.meshgrid(x, y)
-    Z = np.maximum(0, cobertura_total - (X * Y / 50))
-
-    fig, ax = plt.subplots(figsize=(10, 6))
-    c = ax.contourf(X, Y, Z, cmap='viridis', alpha=0.7)
-    fig.colorbar(c, ax=ax)
-    ax.set_xlabel('Comprimento (m)')
-    ax.set_ylabel('Largura (m)')
-    ax.set_title('Mapa de Cobertura Wi-Fi')
-    st.pyplot(fig)
-
-    # Exportar dados
-    if st.button('Exportar Resultados'):
-        data = {
-            'Parâmetro': ['Cobertura Geral Estimada', 'Cobertura por Cômodo'],
-            'Valor': [f'{cobertura_total:.2f}%', f'{cobertura_por_comodo:.2f}%']
-        }
-        df = pd.DataFrame(data)
-        df.to_csv('resultados_cobertura_wifi.csv', index=False)
-        st.success('Resultados exportados com sucesso!')
+        cobertura = cobertura_por_comodo(cobertura_total, num_comodos)
+        st.write(f'Cobertura no Cômodo {i}: {cobertura:.2f}%')
 
 if __name__ == "__main__":
     main()
