@@ -52,7 +52,7 @@ def main():
     freq = st.selectbox("Frequência (GHz):", [2.4, 5])
     comprimento = st.number_input("Comprimento do ambiente (m):", 1, 100, 10)
     largura = st.number_input("Largura do ambiente (m):", 1, 100, 10)
-    altura = st.number_input("Altura do pé-direito (m):", 1, 10, 2.5)
+    altura = st.number_input("Altura do pé-direito (m):", 1, 10, 3)  # Ajustado para número inteiro
     num_andares = st.number_input("Número de andares (incluindo 0 para ambiente sem andares):", 0, 10, 1)
     paredes = st.number_input("Número total de paredes:", 0, 20, 8)
     tipo_paredes = st.selectbox("Tipo de paredes:", ['alvenaria', 'metal', 'plastico_isolante', 'vidro'])
