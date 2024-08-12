@@ -5,7 +5,14 @@ def calcular_cobertura(potencia_sinal, num_roteadores, paredes, tipo_paredes, fr
     sinal_base = 100  # Base de sinal padrão para cálculos
 
     # Ajuste baseado na quantidade de paredes e tipo de paredes
-    perda_por_parede = 5 if tipo_paredes == 'concreto' else 2
+    perdas_por_parede = {
+        'alvenaria': 10,
+        'metal': 15,
+        'plastico_isolante': 5,
+        'vidro': 3
+    }
+    
+    perda_por_parede = perdas_por_parede.get(tipo_paredes, 5)
     sinal_base -= paredes * perda_por_parede
     
     # Ajuste baseado na frequência
@@ -46,7 +53,7 @@ def main():
     largura = st.number_input("Largura do ambiente (m):", 1, 100, 10)
     num_andares = st.number_input("Número de andares:", 1, 10, 1)
     paredes = st.number_input("Número total de paredes:", 0, 20, 8)
-    tipo_paredes = st.selectbox("Tipo de paredes:", ['concreto', 'drywall'])
+    tipo_paredes = st.selectbox("Tipo de paredes:", ['alvenaria', 'metal', 'plastico_isolante', 'vidro'])
     num_roteadores = st.number_input("Número de roteadores:", 1, 10, 1)
     pos_roteador = st.selectbox("Posição do roteador:", ['meio', 'frente', 'fundo'])
 
