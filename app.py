@@ -2,27 +2,27 @@ import streamlit as st
 
 def calcular_cobertura(potencia_sinal, num_roteadores, paredes, tipos_paredes, freq, comprimento, largura, altura_pedireito, num_comodos, pos_roteador, num_andares):
     # Definindo valores padrão
-    sinal_base = 100  # Base de sinal padrão para cálculos
+    sinal_base = 70  # Ajustado para evitar valores negativos
 
     # Ajuste baseado na frequência
     if freq == 2.4:
-        sinal_base += 15  # Melhor penetração em obstáculos
+        sinal_base += 10  # Melhor penetração em obstáculos
     elif freq == 5:
-        sinal_base -= 10  # Menor penetração, maior interferência
+        sinal_base -= 5  # Menor penetração, maior interferência
 
     # Ajuste baseado na posição do roteador
     if pos_roteador == 'meio':
-        sinal_base += 10
+        sinal_base += 5
     elif pos_roteador == 'fundo':
         sinal_base -= 5
     elif pos_roteador == 'frente':
-        sinal_base += 5
+        sinal_base += 0
 
     # Ajuste baseado no número de roteadores
-    sinal_base += num_roteadores * 10
+    sinal_base += num_roteadores * 5
 
     # Ajuste baseado no número de andares
-    sinal_base -= num_andares * 10  # Cada andar adicional reduz a cobertura
+    sinal_base -= num_andares * 5  # Cada andar adicional reduz a cobertura
 
     # Ajuste baseado na combinação de tipos de paredes
     perda_por_parede = {'alvenaria': 15, 'PVC': 5, 'metal': 30, 'vidro': 8}
@@ -33,12 +33,12 @@ def calcular_cobertura(potencia_sinal, num_roteadores, paredes, tipos_paredes, f
     sinal_base -= paredes * perda_total
 
     # Ajuste baseado na metragem de pé-direito
-    ajuste_pedireito = altura_pedireito / 3
+    ajuste_pedireito = altura_pedireito / 5
     sinal_base -= ajuste_pedireito
 
     # Ajuste baseado na área total
     area_total = comprimento * largura
-    cobertura_total = max(0, sinal_base - (area_total / 50))  # Ajuste para refletir a dispersão do sinal
+    cobertura_total = max(0, sinal_base - (area_total / 30))  # Ajuste para refletir a dispersão do sinal
 
     # Normalizando cobertura para 0 a 100%
     cobertura_total = min(max(cobertura_total, 0), 100)
@@ -57,7 +57,7 @@ def main():
     largura = st.number_input("Largura do ambiente (m):", 1, 100, 6)
     altura_pedireito = st.number_input("Altura do pé-direito (m):", 1, 10, 3)
     num_andares = st.number_input("Número de andares (incluindo 0 para ambiente sem andares):", 0, 10, 1)
-    paredes = st.number_input("Número total de paredes:", 0, 20, 8)
+    paredes = st.number_input("Número total de paredes:", 0, 20, 10)
     tipos_paredes = st.multiselect("Tipos de paredes (selecione todos que se aplicam):", 
                                    ['alvenaria', 'PVC', 'metal', 'vidro'])
     num_roteadores = st.number_input("Número de roteadores:", 1, 10, 1)
