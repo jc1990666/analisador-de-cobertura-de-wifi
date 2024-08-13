@@ -1,6 +1,6 @@
 import streamlit as st
 
-def calcular_cobertura(potencia_sinal, num_roteadores, paredes, tipos_paredes, freq, comprimento, largura, num_comodos, pos_roteador, num_andares):
+def calcular_cobertura(potencia_sinal, num_roteadores, paredes, tipos_paredes, freq, comprimento, largura, altura_pe_direito, num_comodos, pos_roteador, num_andares):
     # Definindo valores padrão
     sinal_base = 100  # Base de sinal padrão para cálculos
 
@@ -37,7 +37,10 @@ def calcular_cobertura(potencia_sinal, num_roteadores, paredes, tipos_paredes, f
     sinal_base += num_roteadores * 10
 
     # Ajuste baseado no número de andares
-    sinal_base -= num_andares * 10  # Cada andar adicional reduz a cobertura
+    sinal_base -= max(0, num_andares - 1) * 10  # Cada andar adicional reduz a cobertura
+
+    # Ajuste baseado na altura do pé-direito
+    sinal_base -= (altura_pe_direito - 2.5) * 5  # Pé-direito acima de 2,5m pode reduzir a cobertura
 
     # Ajuste baseado na área total
     area_total = comprimento * largura
@@ -50,21 +53,30 @@ def main():
     st.set_page_config(page_title="Análise de Cobertura Wi-Fi", page_icon=":wifi:", layout="wide", initial_sidebar_state="expanded")
     st.title("Análise de Cobertura Wi-Fi")
     
-    st.write("Utilize este cálculo para estimar a cobertura Wi-Fi considerando vários tipos de paredes e andares.")
+    st.write("Utilize este cálculo para estimar a cobertura Wi-Fi considerando vários tipos de paredes, altura do pé-direito e número de andares.")
 
     # Parâmetros de entrada
     freq = st.selectbox("Frequência (GHz):", [2.4, 5])
     comprimento = st.number_input("Comprimento do ambiente (m):", 1, 100, 10)
     largura = st.number_input("Largura do ambiente (m):", 1, 100, 10)
-    num_andares = st.number_input("Número de andares:", 1, 10, 1)
+    altura_pe_direito = st.number_input("Altura do pé-direito (m):", 2.0, 5.0, 2.5)
+    num_andares = st.number_input("Número de andares:", 0, 10, 1)
     paredes = st.number_input("Número total de paredes:", 0, 20, 8)
     tipos_paredes = st.multiselect("Tipos de paredes:", ['vidro', 'PVC', 'alvenaria', 'madeira', 'metal'])
     num_roteadores = st.number_input("Número de roteadores:", 1, 10, 1)
     pos_roteador = st.selectbox("Posição do roteador:", ['meio', 'frente', 'fundo'])
 
     # Cálculo da cobertura
-    cobertura_total = calcular_cobertura(-100, num_roteadores, paredes, tipos_paredes, freq, comprimento, largura, paredes, pos_roteador, num_andares)
+    cobertura_total = calcular_cobertura(-100, num_roteadores, paredes, tipos_paredes, freq, comprimento, largura, altura_pe_direito, paredes, pos_roteador, num_andares)
     st.write(f'Cobertura Geral Estimada: {cobertura_total:.2f}%')
+
+    # Orientações baseadas no resultado
+    if cobertura_total < 20:
+        st.warning("Cobertura muito baixa. Considere adicionar mais roteadores ou reposicionar o existente.")
+    elif cobertura_total < 50:
+        st.info("Cobertura moderada. Pode ser necessário ajustar a posição do roteador ou melhorar as condições do ambiente.")
+    else:
+        st.success("Cobertura adequada para a maioria dos ambientes.")
 
     # Cobertura por cômodo
     def cobertura_por_comodo(cobertura_total, num_comodos):
@@ -74,7 +86,7 @@ def main():
 
     for i in range(1, paredes + 1):
         cobertura = cobertura_por_comodo(cobertura_total, paredes)
-        st.write(f'Cobertura na Cômodo {i}: {cobertura:.2f}%')
+        st.write(f'Cobertura no Cômodo {i}: {cobertura:.2f}%')
 
 if __name__ == "__main__":
     main()
