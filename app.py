@@ -25,7 +25,7 @@ def calcular_cobertura(potencia_sinal, num_roteadores, paredes, tipos_paredes, f
     sinal_base -= num_andares * 10  # Cada andar adicional reduz a cobertura
 
     # Ajuste baseado na combinação de tipos de paredes
-    perda_por_parede = {'concreto': 10, 'drywall': 5, 'madeira': 3, 'vidro': 2}
+    perda_por_parede = {'alvenaria': 15, 'PVC': 5, 'metal': 30, 'vidro': 8}
     perda_total = 0
     for parede in tipos_paredes:
         perda_total += perda_por_parede.get(parede, 0)
@@ -59,7 +59,7 @@ def main():
     num_andares = st.number_input("Número de andares (incluindo 0 para ambiente sem andares):", 0, 10, 1)
     paredes = st.number_input("Número total de paredes:", 0, 20, 8)
     tipos_paredes = st.multiselect("Tipos de paredes (selecione todos que se aplicam):", 
-                                   ['concreto', 'drywall', 'madeira', 'vidro'])
+                                   ['alvenaria', 'PVC', 'metal', 'vidro'])
     num_roteadores = st.number_input("Número de roteadores:", 1, 10, 1)
     pos_roteador = st.selectbox("Posição do roteador:", ['meio', 'frente', 'fundo'])
 
